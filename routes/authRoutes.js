@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { registrarPadre } = require('../controllers/authController');
+const { registrarPadre, login } = require('../controllers/authController');
 
 
 router.get('/test', (req, res) => {
@@ -9,7 +9,11 @@ router.get('/test', (req, res) => {
 });
 
 
-// Ruta POST para crear padre + familia
+// RutaS AUTHMIDDLEWARE POST para crear padre + familia
 router.post('/register', registrarPadre);
+
+// RutaS AUTHMIDDLEWARE POST para hacer login
+router.post('/login', login)
+
 
 module.exports = router;

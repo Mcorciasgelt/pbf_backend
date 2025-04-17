@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Familia = require('../models/Familia');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 // Función para registrar un nuevo usuario PADRE junto a su familia
 const registrarPadre = async (req, res) => {
@@ -60,5 +61,58 @@ const registrarPadre = async (req, res) => {
   }
 };
 
+// Función para login de usuario
+const login = async (req, res) => {
+    try {
+      // 1. Tomamos email y contraseña del body
+      const { email, password } = req.body;
+  
+      // 2. Validamos que se hayan enviado los dos campos
+      if (!email || !password) {
+        return res.status(400).json({ mensaje: 'Email y contraseña son obligatorios.' });
+      }
+  
+      // 3. Buscamos al usuario por email
+      const usuario = await User.findOne({ email });
+  
+      if (!usuario) {
+        return res.status(401).json({ mensaje: 'Credenciales de email inválidas.' });
+      }
+  
+      // 4. Comparamos la contraseña enviada con la guardada (hasheada)
+      const passwordCorrecta = await bcrypt.compare(password, usuario.password);
+  
+      if (!passwordCorrecta) {
+        return res.status(401).json({ mensaje: 'Credenciales de password inválidas.' });
+      }
+  
+      // 5. Creamos el token JWT
+      const token = jwt.sign(
+        { id: usuario._id, tipo: usuario.tipo, familiaId: usuario.familiaId },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+  
+      // 6. Enviamos el token y los datos del usuario
+      res.status(200).json({
+        mensaje: 'Login exitoso.',
+        token,
+        usuario: {
+          id: usuario._id,
+          nombre: usuario.nombre,
+          email: usuario.email,
+          tipo: usuario.tipo,
+          familiaId: usuario.familiaId,
+          foto: usuario.foto,
+        }
+      });
+  
+    } catch (error) {
+      console.error('Error en login:', error.message);
+      res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    }
+  };
+  
+
 // Exportamos la función para usarla en las rutas
-module.exports = { registrarPadre };
+module.exports = { registrarPadre, login };
