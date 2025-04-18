@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware')
+const { obtenerMiembrosFamilia } = require('../controllers/userController');
+const { crearMiembro } = require('../controllers/userController');
 
 
 router.get('/test', (req, res) => {
@@ -14,6 +16,10 @@ router.get('/me', authMiddleware, (req, res) => {
         usuario: req.user
       })
   });
+
+  router.get('/family', authMiddleware, obtenerMiembrosFamilia)
+
+  router.post('/', authMiddleware, crearMiembro)
 
 
 

@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware')
+const { crearTarea, obtenerTareas } = require('../controllers/taskController')
 
 
-router.get('/test', (req, res) => {
-  res.send(' Ruta /api/tasks/test funcionando');
-});
+router.post('/', authMiddleware, crearTarea)
+
+router.get('/', authMiddleware, obtenerTareas)
 
 
 module.exports = router;

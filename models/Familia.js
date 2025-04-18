@@ -16,5 +16,5 @@ const familiaSchema = new mongoose.Schema({
   timestamps: true, 
 });
 
-const Familia = mongoose.model('Familia', familiaSchema);
+const Familia = mongoose.models.Familia || mongoose.model('Familia', familiaSchema);
 module.exports = Familia;
