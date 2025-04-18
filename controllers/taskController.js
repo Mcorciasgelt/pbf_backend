@@ -64,9 +64,82 @@ const obtenerTareas = async (req, res) => {
     }
   };
 
+// FUNCIÓN PARA EDITAR TAREAS (SOLO USUARIOS TIPO PADRE)
+
+const editarTarea = async (req, res) => {
+    try {
+      const tareaId = req.params.id;
+  
+      // solo los padres puedan editar tareas
+      if (req.user.tipo !== 'padre') {
+        return res.status(403).json({ mensaje: 'Solo los padres pueden editar tareas.' });
+      }
+  
+      // buscar la tarea
+      const tarea = await Tarea.findById(tareaId);
+  
+      if (!tarea || tarea.familiaId.toString() !== req.user.familiaId.toString()) {
+        return res.status(404).json({ mensaje: 'Tarea no encontrada o no pertenece a tu familia.' });
+      }
+  
+      // actualizar los campos (los que vienen en el body)
+      const campos = [
+        'titulo', 'canal', 'fechaEntrega', 'descripcion',
+        'asignatura', 'hijosAsociados', 'padreResponsable'
+      ];
+  
+      campos.forEach(campo => {
+        if (req.body[campo] !== undefined) {
+          tarea[campo] = req.body[campo];
+        }
+      });
+  
+      const tareaActualizada = await tarea.save();
+  
+      res.status(200).json({
+        mensaje: 'Tarea actualizada correctamente.',
+        tarea: tareaActualizada
+      });
+  
+    } catch (error) {
+      console.error('Error al editar tarea:', error.message);
+      res.status(500).json({ mensaje: 'Error al actualizar la tarea.' });
+    }
+  };
+
+// FUNCIÓN PARA ELIMINAR UNA TAREA (SOLO USUARIO TIPO PADRE)
+
+const eliminarTarea = async (req, res) => {
+    try {
+      const tareaId = req.params.id;
+  
+      // solo padre puede eliminar
+      if (req.user.tipo !== 'padre') {
+        return res.status(403).json({ mensaje: 'Solo los padres pueden eliminar tareas.' });
+      }
+  
+      // busca
+      const tarea = await Tarea.findById(tareaId);
+  
+      // verificar que existe y que sea de la familia
+      if (!tarea || tarea.familiaId.toString() !== req.user.familiaId.toString()) {
+        return res.status(404).json({ mensaje: 'Tarea no encontrada o no pertenece a tu familia.' });
+      }
+  
+      await tarea.deleteOne();
+  
+      res.status(200).json({ mensaje: 'Tarea eliminada correctamente.' });
+  
+    } catch (error) {
+      console.error('Error al eliminar tarea:', error.message);
+      res.status(500).json({ mensaje: 'Error al eliminar la tarea.' });
+    }
+  };
 
 
 module.exports = { 
     crearTarea,
-    obtenerTareas
+    obtenerTareas,
+    editarTarea,
+    eliminarTarea
 };
