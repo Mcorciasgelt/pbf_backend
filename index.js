@@ -15,11 +15,18 @@ connectDB()
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const uploadRoutes = require('./routes/uploadRoutes')
+const emailRoutes = require('./routes/emailRoutes')
 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/emails', emailRoutes);
+
+
+app.use('/uploads', express.static('uploads'));
 
 const PORT = process.env.PORT
 
