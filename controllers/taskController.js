@@ -41,19 +41,57 @@ const crearTarea = async (req, res) => {
   }
 };
 
-// FUNCIÓN PARA OBTENER LAS TAREAS DEL USUARIO
+// FUNCIÓN PARA OBTENER LAS TAREAS DEL USUARIO (AGREGUÉ LUEGO FILTROS)
 const obtenerTareas = async (req, res) => {
     try {
       let tareas;
+
+        //esto es por el filtro que voy a recibir los datos de la url
+        const { completada, hijoId, padreId, desde, hasta } = req.query
+        const filtros = {}
   
       if (req.user.tipo === 'padre') {
         // padre uede ver todas las tareas de su familia
-        tareas = await Tarea.find({ familiaId: req.user.familiaId }).sort({ fechaEntrega: 1 });
+        // el filtro empieza vacío y lo voy completando con las comprobaciones que se hacen en los if
+        filtros.familiaId = req.user.familiaId
+
+        if (hijoId) {
+            filtros.hijosAsociados = hijoId 
+        }
+
+        if (padreId) {
+            filtros.padreResponsable = req.padreId
+        }
+
       } else {
-        // hijo puede ver solo tareas en las que está asignado
-        tareas = await Tarea.find({ hijosAsociados: req.user._id }).sort({ fechaEntrega: 1 });
+        filtros.hijosAsociados = req.user._id
       }
-  
+
+
+      // agrego el bloque con las fechas por si quisiera filtrar también por fechas
+      if (desde || hasta) {
+        filtros.fechaEntrega = {}
+
+        if (desde) {
+            filtros.fechaEntrega.$gte = new Date(desde)
+        }
+
+        if (hasta) {
+            filtros.fechaEntrega.$lte = new Date(hasta)
+        }
+      }
+      
+      // opción a filtrar por el estado de la tarea
+      if (completada === "true") {
+        filtros.completada = true
+      } else if (completada === "false") {
+        filtros.completada = false
+      }
+
+      //hago el mismo FIND que hacía anteriormente pero ahora con todo el objetio de filtros construido
+      tareas = await Tarea.find(filtros).sort({ fechaEntrega: 1 });
+
+
       res.status(200).json({
         mensaje: 'Tareas obtenidas correctamente',
         tareas
@@ -181,7 +219,6 @@ const eliminarTarea = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al marcar la tarea como completada.' });
   }
 };
-
 
 
 

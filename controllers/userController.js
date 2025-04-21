@@ -1,21 +1,22 @@
 const bcrypt = require('bcryptjs')
-const User = require('../models/User');
+const User = require('../models/User')
+const Tarea = require('../models/Tarea')
 
 // función para obtener los miembros de la familia
 const obtenerMiembrosFamilia = async (req, res) => {
   try {
-    const familiaId = req.user.familiaId;
+    const familiaId = req.user.familiaId
 
     // Buscamos los usuarios de la familia
-    const miembros = await User.find({ familiaId }).select('-password');
+    const miembros = await User.find({ familiaId }).select('-password')
 
     res.status(200).json({
       mensaje: 'Miembros de la familia obtenidos correctamente',
       miembros,
     });
   } catch (error) {
-    console.error('Error al obtener los miembros de la familia:', error.message);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('Error al obtener los miembros de la familia:', error.message)
+    res.status(500).json({ mensaje: 'Error interno del servidor.' })
   }
 };
 
@@ -74,7 +75,56 @@ const crearMiembro = async (req, res) => {
   }
 };
 
+// función para obtener los datos del usuario que pintará en el Dashboard (vistas al front)
+
+const obtenerDashboard = async (req, res) => {
+  try {
+    const usuario = req.user;
+    const respuesta = {
+      tipo: usuario.tipo,
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        foto: usuario.foto,
+        email: usuario.email
+      }
+    };
+
+    if (usuario.tipo === 'padre') {
+      // extraer 3 tareas siguientes de la familia
+      const tareas = await Tarea.find({ familiaId: usuario.familiaId })
+        .sort({ fechaEntrega: 1 })
+        .limit(3);
+
+      // creo un array con los hijos que usaré más adelante
+      const hijos = await User.find({
+        familiaId: usuario.familiaId,
+        tipo: 'hijo'
+      }).select('nombre foto _id');
+
+      respuesta.proximasTareas = tareas;
+      respuesta.hijos = hijos;
+
+    } else if (usuario.tipo === 'hijo') {
+      // extraer 3 tareas siguientes del hijo
+      const tareas = await Tarea.find({
+        hijosAsociados: usuario._id
+      }).sort({ fechaEntrega: 1 })
+        .limit(3);
+
+      respuesta.proximasTareas = tareas;
+    }
+
+    res.status(200).json(respuesta);
+
+  } catch (error) {
+    console.error('Error en dashboard:', error.message);
+    res.status(500).json({ mensaje: 'Error al cargar la información del panel.' });
+  }
+};
+
 module.exports = {
   obtenerMiembrosFamilia,
-  crearMiembro
+  crearMiembro,
+  obtenerDashboard
 };
