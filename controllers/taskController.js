@@ -136,10 +136,59 @@ const eliminarTarea = async (req, res) => {
     }
   };
 
+  // FUNCIÓN PARA MARCAR COMPLETADA UNA TAREA (TIPO PADRE TODAS / HIJOS SOLO LAS DE ELLOS)
+
+
+  const marcarCompletada = async (req, res) => {
+  try {
+    const tareaId = req.params.id;
+    const { completada } = req.body;
+
+    // revisa el estado actual
+    if (typeof completada !== 'boolean') {
+      return res.status(400).json({ mensaje: 'El campo "completada" debe ser true o false.' });
+    }
+
+    const tarea = await Tarea.findById(tareaId);
+
+    if (!tarea) {
+      return res.status(404).json({ mensaje: 'Tarea no encontrada.' });
+    }
+
+    // valida si es de la familia
+    if (tarea.familiaId.toString() !== req.user.familiaId.toString()) {
+      return res.status(403).json({ mensaje: 'No tienes acceso a esta tarea.' });
+    }
+
+    // aquí es donde hace la diferencia entre hijo o padre
+    if (
+      req.user.tipo === 'hijo' &&
+      !tarea.hijosAsociados.some(hijoId => hijoId.toString() === req.user._id.toString()) //aunque cada hijo solo ve sus tareas, aquí igual volvemos a validar para mantener la seguradad del caso
+    ) {
+      return res.status(403).json({ mensaje: 'No estás asignado a esta tarea por lo que no puedaes marcarla como completada.' });
+    }
+
+    tarea.completada = completada;
+    const tareaActualizada = await tarea.save();
+
+    res.status(200).json({
+      mensaje: 'Tarea actualizada correctamente.',
+      tarea: tareaActualizada
+    });
+
+  } catch (error) {
+    console.error('Error al marcar tarea:', error.message);
+    res.status(500).json({ mensaje: 'Error al marcar la tarea como completada.' });
+  }
+};
+
+
+
 
 module.exports = { 
     crearTarea,
     obtenerTareas,
     editarTarea,
-    eliminarTarea
+    eliminarTarea,
+    marcarCompletada
 };
