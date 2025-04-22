@@ -28,7 +28,7 @@ app.use('/api/emails', emailRoutes);
 
 app.use('/uploads', express.static('uploads'));
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
     console.log(`Escuchando servidor en 🚀 http://localhost:${PORT}`)
