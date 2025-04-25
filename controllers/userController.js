@@ -123,7 +123,55 @@ const obtenerDashboard = async (req, res) => {
   }
 };
 
-// función para eliminar un usuario miembro de la familia (solo el padre)
+// función para EDITAR un usuario miembros de la familia (solo padre)
+
+const editarUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, email, tipo } = req.body;
+    const familiaId = req.user.familiaId;
+
+    // verifica que el usuario exista
+    const usuario = await User.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // verifica si es la misma familia
+    if (usuario.familiaId.toString() !== familiaId.toString()) {
+      return res.status(403).json({ mensaje: 'No tienes permisos para editar este usuario.' });
+    }
+
+    // no cambia tipo distinto de padre o hijo
+    if (!['padre', 'hijo'].includes(tipo)) {
+      return res.status(400).json({ mensaje: 'El tipo debe ser "padre" o "hijo".' });
+    }
+
+    // actualizamos los campos
+    usuario.nombre = nombre;
+    usuario.email = email;
+    usuario.tipo = tipo;
+
+    const usuarioActualizado = await usuario.save();
+
+    res.status(200).json({
+      mensaje: 'Usuario actualizado correctamente.',
+      usuario: {
+        id: usuarioActualizado._id,
+        nombre: usuarioActualizado.nombre,
+        email: usuarioActualizado.email,
+        tipo: usuarioActualizado.tipo,
+      },
+    });
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error.message);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+
+// función para ELIMINAR un usuario miembro de la familia (solo el padre)
 
 const eliminarUsuario = async (req, res) => {
   try {
@@ -161,5 +209,6 @@ module.exports = {
   obtenerMiembrosFamilia,
   crearMiembro,
   obtenerDashboard,
+  editarUsuario,
   eliminarUsuario
 };
