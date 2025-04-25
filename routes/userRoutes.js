@@ -3,7 +3,8 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware')
 const { obtenerMiembrosFamilia } = require('../controllers/userController');
 const { crearMiembro } = require('../controllers/userController');
-const { obtenerDashboard } = require('../controllers/userController');
+const { obtenerDashboard, eliminarUsuario } = require('../controllers/userController');
+
 
 
 // Rutas USER GET que requieren autenticaciíon 
