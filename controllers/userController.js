@@ -204,11 +204,37 @@ const eliminarUsuario = async (req, res) => {
   }
 };
 
+// función para obtener un usuario miembro por su ID
+
+const obtenerUsuarioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const familiaId = req.user.familiaId;
+
+    const usuario = await User.findById(id).select('-password');
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    if (usuario.familiaId.toString() !== familiaId.toString()) {
+      return res.status(403).json({ mensaje: 'No tienes permisos para ver este usuario.' });
+    }
+
+    res.status(200).json(usuario);
+  } catch (error) {
+    console.error('Error al obtener el usuario por ID:', error.message);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+
 
 module.exports = {
   obtenerMiembrosFamilia,
   crearMiembro,
   obtenerDashboard,
   editarUsuario,
-  eliminarUsuario
+  eliminarUsuario,
+  obtenerUsuarioPorId
 };

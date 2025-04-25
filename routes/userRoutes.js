@@ -3,7 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware')
 const { obtenerMiembrosFamilia } = require('../controllers/userController');
 const { crearMiembro } = require('../controllers/userController');
-const { obtenerDashboard, editarUsuario, eliminarUsuario } = require('../controllers/userController');
+const { obtenerDashboard, editarUsuario, eliminarUsuario, obtenerUsuarioPorId } = require('../controllers/userController');
 
 
 
@@ -27,8 +27,11 @@ router.get("/dashboard", authMiddleware, obtenerDashboard)
 // Ruta USER para borrar un miembro
 router.put('/:id', authMiddleware, editarUsuario)
 
-// Ruta USER para borrar un miembro
+// Ruta USER para borrar un miembro 
 router.delete('/:id', authMiddleware, eliminarUsuario)
+
+// Ruta USER para obtener un miembro por ID
+router.get('/:id', authMiddleware, obtenerUsuarioPorId)
 
 
 
