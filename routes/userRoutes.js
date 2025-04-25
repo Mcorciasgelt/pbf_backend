@@ -24,4 +24,9 @@ router.post('/', authMiddleware, crearMiembro)
 router.get("/dashboard", authMiddleware, obtenerDashboard)
 
 
+// Ruta USER para borrar un miembro
+router.delete('/:id', authMiddleware, eliminarUsuario)
+
+
+
 module.exports = router;

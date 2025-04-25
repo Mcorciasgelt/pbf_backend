@@ -123,8 +123,45 @@ const obtenerDashboard = async (req, res) => {
   }
 };
 
+// función para eliminar un usuario miembro de la familia (solo el padre)
+
+const User = require('../models/User');
+
+const eliminarUsuario = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const familiaId = req.user.familiaId;
+
+    // usuario miembro a eliminar
+    const usuario = await User.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // tiene que pertenecer a la misma familia
+    if (usuario.familiaId.toString() !== familiaId.toString()) {
+      return res.status(403).json({ mensaje: 'No tienes permisos para eliminar este usuario.' });
+    }
+
+    // no se puede eliminar a sí mismo
+    if (usuario._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ mensaje: 'No puedes eliminar tu propio usuario.' });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({ mensaje: 'Usuario eliminado correctamente.' });
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error.message);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+
 module.exports = {
   obtenerMiembrosFamilia,
   crearMiembro,
-  obtenerDashboard
+  obtenerDashboard,
+  eliminarUsuario
 };
