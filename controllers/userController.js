@@ -125,8 +125,6 @@ const obtenerDashboard = async (req, res) => {
 
 // función para eliminar un usuario miembro de la familia (solo el padre)
 
-const User = require('../models/User');
-
 const eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
