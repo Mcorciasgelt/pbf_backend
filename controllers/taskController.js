@@ -89,7 +89,10 @@ const obtenerTareas = async (req, res) => {
       }
 
       //hago el mismo FIND que hacía anteriormente pero ahora con todo el objetio de filtros construido
-      tareas = await Tarea.find(filtros).sort({ fechaEntrega: 1 });
+      tareas = await Tarea.find(filtros)
+        .populate('hijosAsociados', 'nombre')
+        .populate('padreResponsable', 'nombre')
+        .sort({ fechaEntrega: 1 });
 
 
       res.status(200).json({
