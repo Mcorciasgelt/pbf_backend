@@ -223,6 +223,29 @@ const eliminarTarea = async (req, res) => {
   }
 };
 
+const obtenerTareaPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // busca la tarea por id y hace el populate para traer el objeto de esos id de padre o hijo 
+    const tarea = await Tarea.findById(id)
+      .populate('padreResponsable', 'nombre')
+      .populate('hijosAsociados', 'nombre');
+
+    if (!tarea) {
+      return res.status(404).json({ mensaje: 'Tarea no encontrada.' });
+    }
+
+    if (req.user.familiaId.toString() !== tarea.familiaId.toString()) {
+      return res.status(403).json({ mensaje: 'No tienes acceso a esta tarea.' });
+    }
+
+    res.status(200).json({ tarea });
+  } catch (error) {
+    console.error('Error al obtener la tarea por ID:', error.message);
+    res.status(500).json({ mensaje: 'Error al obtener la tarea.' });
+  }
+};
 
 
 module.exports = { 
@@ -230,5 +253,6 @@ module.exports = {
     obtenerTareas,
     editarTarea,
     eliminarTarea,
-    marcarCompletada
+    marcarCompletada,
+    obtenerTareaPorId
 };
